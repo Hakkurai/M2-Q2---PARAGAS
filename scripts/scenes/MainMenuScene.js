@@ -4,42 +4,39 @@ class MainMenuScene extends Phaser.Scene {
     }
 
     preload() {
-
-        this.load.image('mainmenu', 'assets/menu/menuBG.jpg');
-        this.load.image('vignette', 'assets/vignette.jpg');
-        this.load.image('playButton', 'assets/menuBTNS/playBTN.png');
-        this.load.image('creditsButton', 'assets/menuBTNS/creditsBTN.png');
-        this.load.image('quitButton', 'assets/menuBTNS/quitBTN.png');
+        this.load.image('mainmenu', 'assets/images/background.png');
+        this.load.image('playButton', 'assets/images/buttons/playBTN.png');
+        this.load.image('quitButton', 'assets/images/buttons/quitBTN.png');
+        this.load.audio('bgMusic', 'assets/bgm/menuBGM.mp3');
     }
 
     create() {
-
-        const mainmenu1 = this.add.image(400, 300, 'mainmenu').setDisplaySize(800, 600);
-        const vignette = this.add.image(400, 300, 'vignette').setDisplaySize(800, 600);
-        vignette.setAlpha(0.3); 
-
-        const playButton = this.add.image(400, 200, 'playButton').setInteractive();
-        playButton.setScale(0.5); 
-        playButton.setPosition(this.sys.game.config.width / 2, this.sys.game.config.height - 100);
-
-        playButton.on('pointerdown', () => {
-        this.scene.start('GameScene');
-        });
-
-        const creditsButton = this.add.image(50, 100, 'creditsButton').setInteractive(); 
-        creditsButton.setScale(0.5);
-        creditsButton.setPosition(creditsButton.width / 3, creditsButton.height / 3); 
-        creditsButton.on('pointerdown', () => {
-            this.scene.start('CreditsScene');
-        });
         
-        const quitButton = this.add.image(this.sys.game.config.width - 100, 100, 'quitButton').setInteractive();
-        quitButton.setScale(0.5);
-        quitButton.setPosition(this.sys.game.config.width - quitButton.width / 3, quitButton.height / 3);
-        quitButton.on('pointerdown', () => {
-            alert('Exiting game.');
+        const mainMenuBg = this.add.image(0, 0, 'mainmenu').setOrigin(0, 0);
+    mainMenuBg.setDisplaySize(this.sys.canvas.width, this.sys.canvas.height);
+
+   if (!this.backgroundMusic || !this.backgroundMusic.isPlaying) {
+    this.backgroundMusic = this.sound.add('bgMusic', { loop: true, volume: 0.02 });
+    this.backgroundMusic.play();
+}
+        const centerX = this.sys.game.config.width / 2;
+        const centerY = this.sys.game.config.height / 2;
+
+        const playButton = this.add.image(centerX, centerY - 10, 'playButton').setInteractive();
+        playButton.setScale(1);
+        playButton.on('pointerdown', () => {
+
+            this.backgroundMusic.stop();
+
+            this.scene.start('GameScene');
         });
 
+        const quitButton = this.add.image(centerX, centerY + 175, 'quitButton').setInteractive();
+        quitButton.setScale(1);
+        quitButton.on('pointerdown', () => {
+
+            alert('You exited the game Knight Slayer!');
+        });
     }
 }
 

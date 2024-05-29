@@ -1,11 +1,12 @@
-import CreditsScene from './CreditsScene.js';
-import GameScene from './GameScene.js';
-import MainMenuScene from './MainMenuScene.js';
+import CreditsScene from './scenes/CreditsScene.js';
+import GameScene from './scenes/GameScene.js';
+import MainMenuScene from './scenes/MainMenuScene.js';
+import GameOverScene from './scenes/GameOverScene.js'; 
 
 var config = {
     type: Phaser.AUTO,
     width: 800,
-    height: 600,
+    height: 600,    
     physics: {
         default: 'arcade',
         arcade: {
@@ -13,7 +14,7 @@ var config = {
             debug: false
         }
     },
-    scene: [MainMenuScene, GameScene, CreditsScene]
+    scene: [MainMenuScene, GameScene, CreditsScene, GameOverScene] 
 };
 
 var game = new Phaser.Game(config);
