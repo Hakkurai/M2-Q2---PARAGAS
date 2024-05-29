@@ -31,7 +31,7 @@ class MainMenuScene extends Phaser.Scene {
             this.scene.start('GameScene');
         });
 
-        const quitButton = this.add.image(centerX, centerY + 175, 'quitButton').setInteractive();
+        const quitButton = this.add.image(centerX, centerY + 85, 'quitButton').setInteractive();
         quitButton.setScale(1);
         quitButton.on('pointerdown', () => {
 

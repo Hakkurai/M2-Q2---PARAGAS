@@ -2,11 +2,8 @@ export default class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
         this.bullets = null;
-        this.bombs = null;
-        this.powerUps = null;
+        this.knights = null;
         this.shootDelay = 500;
-        this.powerUpActive = false;
-        this.spawnPowerUpTimer = null;
         this.timer = null;
         this.timeAlive = 0;
         this.score = 0;
@@ -26,8 +23,8 @@ export default class GameScene extends Phaser.Scene {
 
         // Audio
         this.load.audio('gameMusic', 'assets/bgm/gameBGM.mp3');
-        this.load.audio('knightSlain', 'assets/bgm/knightslainBGM.wav');
-        this.load.audio('shootSound', 'assets/bgm/shootBGM.mp3');
+        this.load.audio('knightSlain', 'assets/sfx/knightslainBGM.wav');
+        this.load.audio('shootSound', 'assets/sfx/shootBGM.mp3');
         this.load.audio('gameOverSound', 'assets/bgm/gameoverBGM.mp3');
     }
 
@@ -37,11 +34,9 @@ export default class GameScene extends Phaser.Scene {
 
         this.gameMusic = this.sound.add('gameMusic', { loop: true, volume: 0.02 });
         this.gameMusic.play();
-        
+
         this.player = this.physics.add.sprite(100, this.game.config.height - 50, 'dragon');
         this.player.setCollideWorldBounds(true);
-
-        
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -50,26 +45,22 @@ export default class GameScene extends Phaser.Scene {
             maxSize: 10
         });
 
-        this.bombs = this.physics.add.group();
-        this.powerUps = this.physics.add.group();
+        this.knights = this.physics.add.group();
 
-        this.physics.add.collider(this.player, this.bombs, this.hitBombWithPlayer, null, this);
-        this.physics.add.overlap(this.bullets, this.bombs, this.hitBombWithBullet, null, this);
-        this.physics.add.overlap(this.player, this.powerUps, this.activatePowerUp, null, this);
+        this.physics.add.collider(this.player, this.knights, this.hitKnightWithPlayer, null, this);
+        this.physics.add.overlap(this.bullets, this.knights, this.hitKnightWithBullet, null, this);
+
         this.time.addEvent({
-
             delay: Phaser.Math.Between(1500, 1500),
-            callback: this.spawnBomb,
+            callback: this.spawnKnight,
             callbackScope: this,
             loop: true
         });
 
-        this.startSpawnPowerUpTimer();
-
         this.startTimer();
 
         this.scoreText = this.add.text(10, 10, 'Score: ' + this.score, {
-            fontSize: 20, 
+            fontSize: 20,
             fill: '#ffffff',
             shadow: {
                 offsetX: 2,
@@ -78,7 +69,7 @@ export default class GameScene extends Phaser.Scene {
                 blur: 1,
                 stroke: false,
                 fill: true
-            } 
+            }
         });
     }
 
@@ -94,10 +85,10 @@ export default class GameScene extends Phaser.Scene {
             this.cameras.main.width - 10,
             10,
             'Time: ' + this.timeAlive + 's',
-            { 
-                fontFamily: 'Mono', 
-                fontSize: 20, 
-                fill: '#ffffff', 
+            {
+                fontFamily: 'Mono',
+                fontSize: 20,
+                fill: '#ffffff',
                 shadow: {
                     offsetX: 2,
                     offsetY: 2,
@@ -126,12 +117,19 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update() {
+        const speed = 160;
+        const delta = this.game.loop.delta / 300; // Convert delta to seconds
+
         if (this.cursors.left.isDown) {
-            this.dragon.setVelocityX(-160);
+            this.player.x -= speed * delta;
         } else if (this.cursors.right.isDown) {
-            this.dragon.setVelocityX(160);
-        } else {
-            this.dragon.setVelocityX(0);
+            this.player.x += speed * delta;
+        }
+
+        if (this.cursors.up.isDown) {
+            this.player.y -= speed * delta;
+        } else if (this.cursors.down.isDown) {
+            this.player.y += speed * delta;
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
@@ -144,15 +142,9 @@ export default class GameScene extends Phaser.Scene {
             }
         });
 
-        this.bombs.children.iterate((bomb) => {
-            if (bomb && bomb.y > this.game.config.height) {
-                bomb.destroy();
-            }
-        });
-
-        this.powerUps.children.iterate((powerUp) => {
-            if (powerUp && powerUp.y > this.game.config.height) {
-                powerUp.destroy();
+        this.knights.children.iterate((knight) => {
+            if (knight && knight.y > this.game.config.height) {
+                knight.destroy();
             }
         });
     }
@@ -171,43 +163,16 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    spawnBomb() {
+    spawnKnight() {
         const x = Phaser.Math.Between(0, this.game.config.width - 32);
-        const bomb = this.bombs.create(x, 0, 'bomb');
-        bomb.setVelocityY(100);
-        bomb.play('bombAnim');
+        const knight = this.knights.create(x, 0, 'knight');
+        knight.setVelocityY(100);
     }
 
-    startSpawnPowerUpTimer() {
-        this.spawnPowerUpTimer = this.time.addEvent({
-            delay: Phaser.Math.Between(5000, 15000),
-            callback: this.spawnPowerUp,
-            callbackScope: this,
-            loop: true
-        });
-    }
-
-    spawnPowerUp() {
-        const x = Phaser.Math.Between(0, this.game.config.width - 32);
-        const powerUp = this.powerUps.create(x, 0, 'powerUp');
-        powerUp.setVelocityY(100);
-    }
-
-    activatePowerUp(player, powerUp) {
-        this.sound.play('collectSound', { volume: 0.05 });
-        this.powerUpActive = true;
-        this.shootDelay /= 2;
-        this.time.delayedCall(5000, () => {
-            this.powerUpActive = false;
-            this.shootDelay *= 2;
-        });
-        powerUp.destroy();
-    }
-
-    hitBombWithBullet(bullet, bomb) {
-        this.sound.play('explosionSound', { volume: 0.05 });
+    hitKnightWithBullet(bullet, knight) {
+        this.sound.play('knightSlain', { volume: 0.05 });
         bullet.destroy();
-        bomb.destroy();
+        knight.destroy();
         this.updateScore();
     }
 
@@ -216,7 +181,7 @@ export default class GameScene extends Phaser.Scene {
         this.scoreText.setText('Score: ' + this.score);
     }
 
-    hitBombWithPlayer(player, bomb) {
+    hitKnightWithPlayer(player, knight) {
         if (this.gameMusic) {
             this.gameMusic.stop();
         }
